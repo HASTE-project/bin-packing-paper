@@ -1,0 +1,33 @@
+# Hosts in Uppmax region
+
+# Ensure that SSH configuration and IP addresses are configured (in `~/.ssh/config` and `/etc/hosts`) first. See 'hostnames.yml' for more setup info.
+
+[spark-master]
+benblamey-uppmax-ldsa-spark-master
+
+[spark-nodes]
+
+# B
+#130.238.29.175
+
+
+# C
+#130.238.29.142
+#130.238.29.132
+#130.238.29.168
+
+# D
+
+# E
+
+# F
+130.238.29.165
+130.238.29.221
+130.238.29.181
+130.238.29.174
+
+
+[all:vars]
+# Needed for Ubuntu hosts
+ansible_python_interpreter=/usr/bin/python3
+

@@ -1,0 +1,72 @@
+
+- import_tasks: java.yml
+
+# Installs to: /usr/local/spark
+- import_tasks: unarchive.yml
+
+#- name: install python3.6
+#  become: true
+#  package:
+#    name: python3.6
+#    state: present
+#
+#- name: uninstall python3.5
+#  become: true
+#  package:
+#    name: python3.5
+#    state: absent
+
+# See: https://spark.apache.org/docs/latest/spark-standalone.html#cluster-launch-scripts
+# Template: https://github.com/apache/spark/blob/master/conf/spark-env.sh.template
+
+- name: "Config file"
+  copy:
+    content: |
+            SPARK_MASTER_HOST="{{ hostvars[item]['ansible_hostname'] }}"
+            HADOOP_CONF_DIR="/usr/local/hadoop/conf"
+            PYSPARK_PYTHON=/usr/bin/python3
+            PYSPARK_DRIVER_PYTHON=/usr/bin/python3
+    dest: /usr/local/spark/conf/spark-env.sh
+  become: yes
+  with_items:
+    - "{{ groups['spark-master'] }}"
+
+# complaints about a missing package here -- run
+# sudo sed -ie 's/nova.clouds.archive.ubuntu.com/se.archive.ubuntu.com/' /etc/apt/sources.list
+# sudo apt update
+- name: install python3-pip
+  become: true
+  package:
+    name: python3-pip
+    state: present
+
+
+# for the million songs
+- name: "install h5py"
+  become: true
+  pip:
+    executable: pip3
+    name: h5py
+
+
+# student requested packages
+- name: "install tables"
+  become: true
+  pip:
+    executable: pip3
+    name: tables
+
+
+- name: "install pysam"
+  become: true
+  pip:
+    executable: pip3
+    name: pysam
+
+
+
+
+# TODO: add regex to match any old line
+- name: "PYSPARK_PYTHON env variable"
+  become: yes
+  lineinfile: dest=/etc/environment line="PYSPARK_PYTHON=/usr/bin/python3" state=present

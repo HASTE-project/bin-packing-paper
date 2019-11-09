@@ -1,0 +1,17 @@
+
+- import_tasks: hostnames.yml
+- import_tasks: ssh_keys.yml
+
+- name: Update apt
+  become: true
+  apt:
+    update_cache: yes
+    cache_valid_time: 604800 # one week
+
+
+# " "stderr": "E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem. \n", "stderr_lines": ["E: dpkg was interrupted, you must manually run 'sudo dpkg --configure -a' to correct the problem."
+#- name: install iperf
+#  become: true
+#  apt:
+#    name: iperf
+

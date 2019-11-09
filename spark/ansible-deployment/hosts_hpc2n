@@ -1,0 +1,46 @@
+# HPC2N
+
+
+# Ensure that SSH configuration and IP addresses are configured (in `~/.ssh/config` and `/etc/hosts`) first. See 'hostnames.yml' for more setup info.
+
+# This host is in an error state -
+# TODO: try to recover notebooks (but its scrap)
+# TODO: decomission spark cluster for this region
+#spark-prod
+#spark-worker--1
+#spark-worker--2
+#spark-worker--3
+#spark-worker--4
+#spark-worker--5
+
+# simulator
+lovisainstance
+
+# database
+metadata-db-prod
+
+hio-prod
+hio-worker-prod-0-1
+hio-worker-prod-0-2
+hio-worker-prod-0-3
+hio-worker-prod-0-4
+hio-worker-prod-0-5
+hio-worker-prod-0-6
+hio-worker-prod-0-7
+hio-worker-prod-0-8
+#hio-worker-prod-0-9 -- this host is broken?!
+hio-worker-prod-0-10
+
+[all:vars]
+# Needed for Ubuntu hosts
+ansible_python_interpreter=/usr/bin/python3
+
+[spark-master]
+#spark-prod
+
+[spark-nodes]
+#spark-worker--1
+#spark-worker--2
+#spark-worker--3
+#spark-worker--4
+#spark-worker--5
