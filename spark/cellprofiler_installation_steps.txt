@@ -1,0 +1,29 @@
+List of installed packages
+apt-get update; apt-get -y upgrade
+apt-get -y install \
+    build-essential    \
+    cython             \
+    git                \
+    libmysqlclient-dev \
+    libhdf5-dev        \
+    libxml2-dev        \
+    libxslt1-dev       \
+    openjdk-8-jdk      \
+    python-dev         \
+    python-pip         \
+    python-h5py        \
+    python-matplotlib  \
+    python-mysqldb     \
+    python-scipy       \
+    python-numpy       \
+    python-pytest      \
+    python-vigra       \
+    python-wxgtk3.0    \
+    python-zmq
+
+git clone https://github.com/CellProfiler/CellProfiler.git
+cd CellProfiler
+git checkout v3.1.9
+pip install .
+cellprofiler --version
+3.1.9
