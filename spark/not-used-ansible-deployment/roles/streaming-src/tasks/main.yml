@@ -1,9 +1,0 @@
-
-- name: install python3 pip
-  become: true
-  package:
-    name: python3-pip
-
-- pip:
-    executable: pip3
-    name: confluent-kafka
