@@ -1,0 +1,11 @@
+
+
+
+
+sudo apt-get install -y nfs-kernel-server
+
+sudo mkdir /mnt/images
+echo "/mnt/images *(ro)" | sudo tee -a /etc/exports
+cat /etc/exports
+sudo exportfs -a
+sudo systemctl restart nfs-kernel-server

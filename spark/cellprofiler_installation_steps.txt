@@ -1,5 +1,7 @@
 List of installed packages
+
 apt-get update; apt-get -y upgrade
+
 apt-get -y install \
     build-essential    \
     cython             \
@@ -21,9 +23,55 @@ apt-get -y install \
     python-wxgtk3.0    \
     python-zmq
 
+
 git clone https://github.com/CellProfiler/CellProfiler.git
 cd CellProfiler
 git checkout v3.1.9
 pip install .
-cellprofiler --version
-3.1.9
+
+cellprofiler --version 3.1.9
+
+
+
+
+
+##############
+# Spark
+cd ~
+curl https://archive.apache.org/dist/spark/spark-2.4.4/spark-2.4.4-bin-hadoop2.7.tgz --output spark-2.4.4-bin-hadoop2.7.tgz
+tar -zxvf spark-2.4.4-bin-hadoop2.7.tgz
+
+sudo apt-get -y install nfs-common
+
+sudo mkdir -p /mnt/images
+
+# [Device] [Mount Point] [File System Type] [Options] [Dump] [Pass]
+echo "192.168.1.8:/mnt/images   /mnt/images   nfs    auto  0  0" | sudo tee -a /etc/fstab
+sudo mount -a
+
+# test the share:
+ls /mnt/images/Salman_Cell_profiler_data/Data/
+
+
+# Note: 'Python 2.7.15+'
+
+###
+# for master
+
+# start spark master
+~/spark-2.4.4-bin-hadoop2.7/sbin/start-master.sh
+
+# matching version of pyspark
+python -m pip install pyspark=2.4.4
+
+
+# no good -- need to use java/scala anyway...
+##python -m pip install ipython
+##python -m pip install jupyter
+### start notebook
+##python -m jupyter notebook
+
+
+# for worker
+# start spark worker
+~/spark-2.4.4-bin-hadoop2.7/sbin/start-slave.sh spark://192.168.1.15:7077
