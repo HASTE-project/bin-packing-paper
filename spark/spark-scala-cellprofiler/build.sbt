@@ -1,4 +1,4 @@
-name := "spark-scala-benchmarking"
+name := "spark-scala-cellprofiler"
 version := "0.1"
 
 // Spark is built against Scala 2.11 - this is latest version of 2.11
@@ -13,7 +13,7 @@ libraryDependencies += "org.apache.spark" % "spark-streaming_2.11" % "2.3.0"
 // Kafka Consumer API 0.10.0, Scala 2.11, Spark 2.3.0
 // See: https://spark.apache.org/docs/latest/streaming-kafka-integration.html
 // note, no Receiver DStream in 0.10
-libraryDependencies += "org.apache.spark" % "spark-streaming-kafka-0-10_2.11" % "2.3.0"
+//libraryDependencies += "org.apache.spark" % "spark-streaming-kafka-0-10_2.11" % "2.4.4"
 
 
 // https://mvnrepository.com/artifact/org.apache.spark/spark-hive
