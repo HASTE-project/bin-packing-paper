@@ -7,7 +7,8 @@ import org.apache.spark.rdd.{RDD, UnionRDD}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import java.io.{ File, PrintWriter }
+import java.io.{File, PrintWriter}
+import java.nio.file.Paths
 
 import scala.sys.process._
 import scala.reflect.ClassTag
@@ -83,14 +84,25 @@ object CellProfilerStreaming {
   def main(args: Array[String]) {
     runFileStreamingApp
   }
+  import java.nio.file.Files
 
   def runcp(filename: String): Unit = {
-    val fileListFilenmae = writeToTempFile(filename)
-    println("created file:" + fileListFilenmae)
-    println("image file:" + filename)
+//    val fileListFilenmae = writeToTempFile(filename)
+//    println("created file:" + fileListFilenmae)
+//    println("image file:" + filename)
 
-    s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj --file-list $fileListFilenmae".!!
-    // s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj --file-list /tmp/prefix-6430779093236018598-suffix".!!
+    val tempDir = Files.createTempDirectory("some-prefix").toFile
+
+    Files.copy(Paths.get(filename), Paths.get(tempDir.getPath + "/foo.tiff"))
+    //s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj --file-list $fileListFilenmae".!!
+
+    val commandline = s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj -i ${tempDir.getAbsolutePath}"
+    println(commandline)
+    val output = commandline.!!
+
+//    Files.deleteIfExists(tempDir.toPath)
+
+    return output
   }
 
   private def runFileStreamingApp = {
