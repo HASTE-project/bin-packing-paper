@@ -1,20 +1,3 @@
-/**
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -37,11 +20,10 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import java.io.IOException;
 
-/** An {@link InputFormat} for plain text files.  Files are broken into lines.
- * Either linefeed or carriage-return are used to signal end of line.  Keys are
- * the position in the file, and values are the line of text.. */
-@InterfaceAudience.Public
-@InterfaceStability.Stable
+/**
+ * A dummy {@link InputFormat} for whole binary files. DATA IS NOT ACTUALLY READ.
+ * Intended to be used in cases where the filename is passed to an external process, but the file contents is not read by spark.
+ */
 public class WholeBinaryFormat extends FileInputFormat<LongWritable, BytesWritable> {
 
     @Override
@@ -57,6 +39,7 @@ public class WholeBinaryFormat extends FileInputFormat<LongWritable, BytesWritab
 
             @Override
             public boolean nextKeyValue() throws IOException, InterruptedException {
+                // One key for each file.
                 boolean next = this.next;
                 this.next = false;
                 return next;
@@ -69,7 +52,7 @@ public class WholeBinaryFormat extends FileInputFormat<LongWritable, BytesWritab
 
             @Override
             public BytesWritable getCurrentValue() throws IOException, InterruptedException {
-                // Dummy value - just to get it to do something
+                // DUMMY VALUE! - just to get it to do something.
                 return new BytesWritable(new byte[]{0});
             }
 
@@ -84,12 +67,6 @@ public class WholeBinaryFormat extends FileInputFormat<LongWritable, BytesWritab
             }
         };
 
-//        String delimiter = context.getConfiguration().get(
-//                "textinputformat.record.delimiter");
-//        byte[] recordDelimiterBytes = null;
-//        if (null != delimiter)
-//            recordDelimiterBytes = delimiter.getBytes(Charsets.UTF_8);
-//        return new LineRecordReader(recordDelimiterBytes);
     }
 
     @Override

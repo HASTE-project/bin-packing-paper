@@ -13,6 +13,8 @@ Source 1x ssc.small
 
 See 'box'.
 
+268 x 2.6MB = 696.8MB
+
 
 
 
@@ -35,9 +37,9 @@ https://spark.apache.org/docs/latest/api/python/pyspark.streaming.html
 "fileStream is not available in the Python API; only textFileStream is available."
 > make a scala app..
 
+# Copy 1 file
+cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/011001-1-001001001.tif src/
 
-# Images
-268 x 2.6MB = 696.8MB
-
-
+# Copy all files
+cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/* src/
 

@@ -2,7 +2,7 @@
 
 import org.apache.hadoop.io.{BytesWritable, LongWritable, Text}
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat
-import org.apache.log4j.Logger
+import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.{RDD, UnionRDD}
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.dstream.DStream
@@ -45,7 +45,6 @@ object CellProfilerStreaming {
 
   // https://gist.github.com/malcolmgreaves/47a1ac470cd60cffe72ddcf1ea7b7df0
 
-
   /** Creates a temporary file, writes the input string to the file, and the file handle.
     *
     * NOTE: This funciton uses the createTempFile function from the File class. The prefix and
@@ -73,44 +72,47 @@ object CellProfilerStreaming {
     tempFi
   }
 
+  val logger = Logger.getRootLogger()
+
 
   def byFileTransformer(filename: String)(rdd: RDD[String]): RDD[(String, String)] =
     rdd.map(line => (filename, line))
 
   val BATCH_INTERVAL = 5
   val SPARK_MASTER_URL: String = "spark://192.168.1.15:7077"
-  val PATH: String = "/mnt/images/Salman_Cell_profiler_data/Data/one_image/"
+  val PATH: String = "/mnt/images/Salman_Cell_profiler_data/Data/src/"
 
   def main(args: Array[String]) {
     runFileStreamingApp
   }
+
   import java.nio.file.Files
 
-  def runcp(filename: String): Unit = {
-//    val fileListFilenmae = writeToTempFile(filename)
-//    println("created file:" + fileListFilenmae)
-//    println("image file:" + filename)
+  def runcp(imageFilename: String): String = {
+    // Need to look at the worker logs (for the application) to see these:
 
-    val tempDir = Files.createTempDirectory("some-prefix").toFile
+    logger.warn("image file: " + imageFilename)
 
-    Files.copy(Paths.get(filename), Paths.get(tempDir.getPath + "/foo.tiff"))
-    //s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj --file-list $fileListFilenmae".!!
+    val imageFilenameURL = new File(imageFilename).toURL
+    logger.warn("image file: " + imageFilenameURL)
 
-    val commandline = s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj -i ${tempDir.getAbsolutePath}"
-    println(commandline)
-    val output = commandline.!!
+    // The file list needs to represent filenames as URIs:
+    val fileListFilename = writeToTempFile(imageFilenameURL.toString)
+    logger.warn("created file:" + fileListFilename)
 
-//    Files.deleteIfExists(tempDir.toPath)
+    val cpOutputTempDir = Files.createTempDirectory("cp-output").toFile
+    logger.warn("output dir" + cpOutputTempDir)
 
-    return output
+    // Run cellprofiler, as
+    val commandline = s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj -o $cpOutputTempDir --file-list $fileListFilename"
+    logger.warn(commandline)
+
+    val output_cp = commandline.!!
+    val output_ls = s"ls -l $cpOutputTempDir".!!
+    return output_ls
   }
 
   private def runFileStreamingApp = {
-
-    val filename = "/mnt/images/Salman_Cell_profiler_data/Data/one_image/18.tif"
-    println(s"head $filename".!!)
-
-    println(runcp("/mnt/images/Salman_Cell_profiler_data/Data/one_image/21.tif"))
 
     val sparkSession = SparkSession.builder
       .master(SPARK_MASTER_URL)
@@ -119,15 +121,19 @@ object CellProfilerStreaming {
 
     sparkSession.sparkContext.setLogLevel("INFO")
 
+    logger.setLevel(Level.WARN)
+    logger.warn("can you see me?")
+
     val ssc = new StreamingContext(sparkSession.sparkContext, Seconds(BATCH_INTERVAL))
 
     val dstream = namedTextFileStream(ssc, PATH)
 
     val filenamesAndContentsDStream = dstream.transform(rdd => transformByFile(rdd, byFileTransformer))
 
-    filenamesAndContentsDStream.foreachRDD(rdd => println("processed: " + rdd.count()))
+    // (Runs at the driver)
+    filenamesAndContentsDStream.foreachRDD(rdd => logger.warn("new files: " + rdd.count()))
 
-    // Discard the file contents, leaving just the filenames.
+    // Discard the file contents, leaving just the filenames:
     val filenamesDStream = filenamesAndContentsDStream.map(_._1.substring("file:".length))
     filenamesDStream.print(5)
 
@@ -135,10 +141,13 @@ object CellProfilerStreaming {
 
     // The .!! runs an external process and gets all the string outout.
 
+    // (Runs at the driver)
+    filenamesDStream.foreachRDD(rdd => logger.warn(s"number partitions: ${rdd.getNumPartitions} number files: ${rdd.count}"))
+
     val cellprofilerOutputDStream = filenamesDStream.map(runcp)
 
     // Force execution, (but don't collect)
-    cellprofilerOutputDStream.count()
+    cellprofilerOutputDStream.count().print()
     cellprofilerOutputDStream.print(1)
 
     ssc.start()
