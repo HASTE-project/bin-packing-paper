@@ -107,7 +107,10 @@ object CellProfilerStreaming {
     val commandline = s"cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj -o $cpOutputTempDir --file-list $fileListFilename"
     logger.warn(commandline)
 
+    // The .!! runs an external process and gets all the string outout.
     val output_cp = commandline.!!
+
+    // The output is in CSV files, do a listing to confirm success.
     val output_ls = s"ls -l $cpOutputTempDir".!!
     return output_ls
   }
@@ -137,9 +140,8 @@ object CellProfilerStreaming {
     val filenamesDStream = filenamesAndContentsDStream.map(_._1.substring("file:".length))
     filenamesDStream.print(5)
 
-    // TODO: create file for --file-list
 
-    // The .!! runs an external process and gets all the string outout.
+
 
     // (Runs at the driver)
     filenamesDStream.foreachRDD(rdd => logger.warn(s"number partitions: ${rdd.getNumPartitions} number files: ${rdd.count}"))
@@ -148,7 +150,8 @@ object CellProfilerStreaming {
 
     // Force execution, (but don't collect)
     cellprofilerOutputDStream.count().print()
-    cellprofilerOutputDStream.print(1)
+    // Should print some CSV filenames for the output:
+    cellprofilerOutputDStream.print(5)
 
     ssc.start()
     ssc.awaitTermination()
