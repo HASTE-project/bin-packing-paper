@@ -11,7 +11,7 @@ object CellProfilerStreaming {
 
   val logger = Logger.getRootLogger()
 
-  val BATCH_INTERVAL = 5
+  val BATCH_INTERVAL = 5 //5
   val SPARK_MASTER_URL: String = "spark://192.168.1.15:7077"
   val PATH: String = "/mnt/images/Salman_Cell_profiler_data/Data/src/"
 
@@ -53,7 +53,38 @@ object CellProfilerStreaming {
     val sparkSession = SparkSession.builder
       .master(SPARK_MASTER_URL)
       .appName("CellProfiler")
+
+
+
+      // Implemented with: https://issues.apache.org/jira/browse/SPARK-12133
+      // See: https://medium.com/@pmatpadi/spark-streaming-dynamic-scaling-and-backpressure-in-action-6ebdbc782a69
+      // These don't seem to be documented officially? (yet?)
+      //      .config("spark.streaming.dynamicAllocation.enabled", true)
+      //      .config("spark.streaming.dynamicAllocation.scalingInterval", 10)
+      //      .config("spark.streaming.dynamicAllocation.minExecutors", 1)
+
+
+      // Scaling up is driven by ratio of batch interval to processing time.
+      // But, it doesn't apply until an entire batch is copied. So, we want a pause between copying the files.
+      // And we also use a short batch interval (of 1 second). this way, we complete the first batch within a few seconds, so
+      // we can begin the scaling.
+
+      // .. this doesn't really work -- because the jobs are processed sequentially, so we can never use all of the cores properly.
+      // since we must have a small number of files in the batch interval in order for timely scale up,
+      // but enough files in the batch interval to use all the cores when it has scaled up.
+
+      // So instead, try with the traditional mechanism.
+      .config("spark.shuffle.service.enabled", true)
+      .config("spark.dynamicAllocation.enabled", true)
+      .config("spark.dynamicAllocation.executorIdleTimeout", 10)
+
+
       .getOrCreate()
+
+    //    NOTE: scaling in spark is based on executors. by default, one executor per node (with all cores)
+    //    So, we instead set 1 core/executor, to get finer granularity. pay some overhead for this.
+    // We configure this in /conf on the master
+    // TODO: does this setting also work if set from here? should do, the application owns the executors.
 
     sparkSession.sparkContext.setLogLevel("INFO")
 

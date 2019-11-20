@@ -52,6 +52,8 @@ sudo mount -a
 # test the share:
 ls /mnt/images/Salman_Cell_profiler_data/Data/
 
+# start shuffle service --needed for autoscaling
+./start-shuffle-service.sh
 
 # Note: 'Python 2.7.15+'
 
@@ -75,3 +77,7 @@ python -m pip install pyspark=2.4.4
 # for worker
 # start spark worker
 ~/spark-2.4.4-bin-hadoop2.7/sbin/start-slave.sh spark://192.168.1.15:7077
+
+
+# jq needed for json parsing
+sudo apt-get install jq
