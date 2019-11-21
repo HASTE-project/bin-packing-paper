@@ -76,8 +76,16 @@ object CellProfilerStreaming {
       // So instead, try with the traditional mechanism.
       .config("spark.shuffle.service.enabled", true)
       .config("spark.dynamicAllocation.enabled", true)
-      .config("spark.dynamicAllocation.executorIdleTimeout", 10)
+      .config("spark.dynamicAllocation.executorIdleTimeout", 20)
 
+    // TODO: spark.dynamicAllocation.cachedExecutorIdleTimeout ?? this causing executors to stay alive?
+
+      // By default, jobs are run sequentially across the cluster.
+      // Because processing each image takes ~10 seconds on a single core,
+      // We waste a lot of resources.
+      // So, allow up to 3 jobs to be processed concurrently.
+      // A job processes all the image files created in the 5 second batch interval.
+      .config("spark.streaming.concurrentJobs", 3)
 
       .getOrCreate()
 
@@ -85,8 +93,9 @@ object CellProfilerStreaming {
     //    So, we instead set 1 core/executor, to get finer granularity. pay some overhead for this.
     // We configure this in /conf on the master
     // TODO: does this setting also work if set from here? should do, the application owns the executors.
+    // spark.executor.cores=1
 
-    sparkSession.sparkContext.setLogLevel("INFO")
+    sparkSession.sparkContext.setLogLevel("WARN")
 
     logger.setLevel(Level.WARN)
     logger.warn("can you see me?")

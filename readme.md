@@ -51,22 +51,40 @@ TODO: scaling policy in Spark -- by default it will try to 'spread out' the exec
 
 
 
+
+sudo ntpdate -v 0.se.pool.ntp.org
+
+
 profiling:
 ```
 
 # profile CPU (run this on each worker)
-rm cpu.log ; while : ; do  echo "$(top -b -n 1 | grep Cpu) -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 0.5; done >> cpu.log
-
+# gotcha, see: https://serverfault.com/questions/436446/top-showing-64-idle-on-first-screen-or-batch-run-while-there-is-no-idle-time-a
+rm cpu.log ; while : ; do  echo "$(top -b -n2 -d 0.1 |grep "Cpu(s)"|tail -n 1) -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 0.5; done >> cpu.log
 
 
 # Poll the total number of cores (just do this on the master)
-# Need to first get AppID from eg. http://localhost:4040/api/v1/applications
-rm cores.log ; while : ; do  echo "$(curl -s http://localhost:4040/api/v1/applications/app-20191120193218-0005/executors | jq 'reduce .[] as $item (0; . + $item.totalCores)') -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 1; done >> cores.log
+# Need to first get AppID from web interface
+rm cores.log ; while : ; do  echo "$(curl -s http://localhost:4040/api/v1/applications/app-20191121130101-0002/executors | jq 'reduce .[] as $item (0; . + $item.totalCores)') -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 1; done >> cores.log
 ```
 
 
-rsync 130.238.28.97:~/*.log spark/data
-    
+mkdir spark/data/master
+rsync 130.238.28.97:~/*.log spark/data/master
+mkdir spark/data/worker1
+rsync 130.238.28.106:~/*.log spark/data/worker1
+mkdir spark/data/worker2
+rsync 130.238.28.86:~/*.log spark/data/worker2
+mkdir spark/data/worker3
+rsync 130.238.29.54:~/*.log spark/data/worker3
+mkdir spark/data/worker4
+rsync 130.238.28.59:~/*.log spark/data/worker4
+# worker 5 doesn't have public IP
+mkdir spark/data/worker5
+rsync -e "ssh -p 10000" ubuntu@localhost:~/*.log spark/data/worker5
+
+
+
 
 # Copy 1 file
 rm src/* ; cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/011001-1-001001001.tif src/
@@ -76,7 +94,11 @@ rm src/* ; cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/* 
 
 
 # Copy all files with a small pause (this helps spark to create smaller batches - so it can scale in a timely fashion
-rm src/* ; find ./Nuclear\ images -type f | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
+rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
 
 # copy 20 images
-rm src/* ; find ./Nuclear\ images -type f | head -n 20 | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
+cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | head -n 20 | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
+
+
+# run manually one image
+cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj -o ~ --file-list filelist
