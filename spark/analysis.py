@@ -51,7 +51,7 @@ def get_cpu(dir):
         cpu_steal = float(matches.group(8))
         unix = int(matches.group(9)) / 1000
 
-        results.append((unix, (cpu_user + cp_system) / (100 - cpu_steal)))
+        results.append((unix, (cpu_user + cp_system) / (100)))
 
     return results
 
