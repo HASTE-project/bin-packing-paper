@@ -84,17 +84,37 @@ cores_array = numpy.array(cores_data)
 cpu_array[:,0] = cpu_array[:,0] - initial_timestamp
 cores_array[:,0] = cores_array[:,0] - initial_timestamp
 
+import numpy as np
+
+TRIM = True
+if TRIM:
+    # manually 'trim' the start and end by looking at the plot
+    start_timestamp = 100
+    end_timestamp = 1200
+
+    cpu_array_start = np.argmax(cpu_array[:,0] > start_timestamp)
+    cpu_array_end = np.argmax(cpu_array[:,0] > end_timestamp)
+
+    cpu_array = cpu_array[cpu_array_start:cpu_array_end,:]
+
+    cores_array_start = np.argmax(cores_array[:,0] > start_timestamp)
+    cores_array_end = np.argmax(cores_array[:,0] > end_timestamp)
+
+    cores_array = cores_array[cores_array_start:cores_array_end,:]
 
 
 plt.rc('figure', figsize=(10, 5))
 
 plt.title('CPU usage on Spark cluster')
-plt.plot(cpu_array[:, 0], cpu_array[:, 1] / 5 * 40, label='CPU usage')
-plt.plot(cores_array[:, 0], cores_array[:, 1], label='Spark Executor Cores (5x SSC.XLARGE)')
+plt.plot(cpu_array[:, 0], cpu_array[:, 1] / 5 * 40, label='CPU usage', linestyle='-', color='black')
+plt.plot(cores_array[:, 0], cores_array[:, 1], label='Spark Executor Cores (5x SSC.XLARGE)', linestyle='--', color='black')
 plt.legend()
 plt.xlabel('Timestamp (secs)')
 plt.ylabel('Cores')
+if TRIM:
+    plt.xlim((start_timestamp, end_timestamp))
 
+plt.tight_layout()
 plt.savefig(f'spark_{RUN}_cpus.png', dpi=600)
 
 
