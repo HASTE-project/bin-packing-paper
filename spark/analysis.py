@@ -106,11 +106,20 @@ if TRIM:
 plt.rc('figure', figsize=(10, 5))
 
 plt.title('CPU usage on Spark cluster')
-plt.plot(cpu_array[:, 0], cpu_array[:, 1] / 5 * 40, label='CPU usage', linestyle='-', color='black')
-plt.plot(cores_array[:, 0], cores_array[:, 1], label='Spark Executor Cores (5x SSC.XLARGE)', linestyle='--', color='black')
+
+
+
+plt.plot(cpu_array[:, 0], cpu_array[:, 1] / 5 * 40, label='CPU usage', linestyle="-", lw= 0.5, color="black", alpha=0.7)
+plt.plot(cores_array[:, 0], cores_array[:, 1], label='Spark Executor Cores (5x SSC.XLARGE)', linestyle="--", lw= 0.5, color="black", alpha=0.8)
 plt.legend()
 plt.xlabel('Timestamp (secs)')
 plt.ylabel('Cores')
+
+# for cons with oliver
+ax = plt.axes()
+ax.yaxis.grid(alpha=0.3) # horizontal lines
+plt.box(False)
+
 if TRIM:
     plt.xlim((start_timestamp, end_timestamp))
 
