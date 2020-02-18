@@ -85,7 +85,7 @@ object CellProfilerStreaming {
       // We waste a lot of resources.
       // So, allow up to 3 jobs to be processed concurrently.
       // A job processes all the image files created in the 5 second batch interval.
-      .config("spark.streaming.concurrentJobs", 3)
+      .config("spark.streaming.concurrentJobs", 40)//3)
 
       .getOrCreate()
 

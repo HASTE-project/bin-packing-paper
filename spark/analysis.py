@@ -2,7 +2,14 @@ import re
 import math
 import matplotlib.pyplot as plt
 
-RUN = '2019-11-21'
+# RUN = '2019-11-21'
+# start_timestamp = 0
+# end_timestamp = 1200
+
+RUN = '2020-02-18'
+start_timestamp = 100
+end_timestamp = 1000
+
 
 CORES_LOG_REGEX = re.compile('^([0-9]+)? -  ([0-9]+)mS')
 # %Cpu(s):  0.0 us,  1.1 sy,  0.0 ni, 98.9 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st -  1574330445538mS since epoch
@@ -89,8 +96,6 @@ import numpy as np
 TRIM = True
 if TRIM:
     # manually 'trim' the start and end by looking at the plot
-    start_timestamp = 100
-    end_timestamp = 1200
 
     cpu_array_start = np.argmax(cpu_array[:,0] > start_timestamp)
     cpu_array_end = np.argmax(cpu_array[:,0] > end_timestamp)

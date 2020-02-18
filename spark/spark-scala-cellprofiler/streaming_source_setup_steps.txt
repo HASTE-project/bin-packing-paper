@@ -1,4 +1,5 @@
-
+# 192.168.1.8
+ssc.small
 
 
 
@@ -9,3 +10,9 @@ echo "/mnt/images *(ro)" | sudo tee -a /etc/exports
 cat /etc/exports
 sudo exportfs -a
 sudo systemctl restart nfs-kernel-server
+
+sudo chown ubuntu /mnt/images
+
+# To upload images
+
+cd ~/projects/haste/images/bin-packing-azn-images/Salman_Cell_profiler_data

@@ -1,4 +1,10 @@
-List of installed packages
+
+
+# fix IP address for new streaming source
+sudo sed -i 's/\.8/\.22/g' /etc/fstab ; sudo mount -a ; ls /mnt/images
+-----
+
+List of installed packages:
 
 apt-get update; apt-get -y upgrade
 
@@ -79,3 +85,5 @@ ls /mnt/images/Salman_Cell_profiler_data/Data/
 # for worker
 # start spark worker
 ~/spark-2.4.4-bin-hadoop2.7/sbin/stop-slave.sh ; ~/spark-2.4.4-bin-hadoop2.7/sbin/start-slave.sh spark://192.168.1.15:7077
+
+~/spark-2.4.4-bin-hadoop2.7/sbin/start-shuffle-service.sh

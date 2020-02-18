@@ -36,6 +36,17 @@ https://spark.apache.org/docs/latest/api/python/pyspark.streaming.html
 "fileStream is not available in the Python API; only textFileStream is available."
 (instead made Scala app)
 
+On the driver:
+
+
+
+./spark-2.4.4-bin-hadoop2.7/sbin/start-master.sh
+./spark-2.4.4-bin-hadoop2.7/sbin/start-shuffle-service.sh 
+./spark-2.4.4-bin-hadoop2.7/sbin/start-slave.sh spark://192.168.1.15:7077
+
+exit
+ 
+
 TODO: 
 1. call Rest API to get number of cores, e.g.
 http://localhost:4040/api/v1/applications
@@ -65,7 +76,8 @@ rm cpu.log ; while : ; do  echo "$(top -b -n2 -d 0.1 |grep "Cpu(s)"|tail -n 1) -
 
 # Poll the total number of cores (just do this on the master)
 # Need to first get AppID from web interface
-rm cores.log ; while : ; do  echo "$(curl -s http://localhost:4040/api/v1/applications/app-20191121130101-0002/executors | jq 'reduce .[] as $item (0; . + $item.totalCores)') -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 1; done >> cores.log
+rm cores.log ; while : ; do  echo "$(curl -s http://localhost:4040/api/v1/applications/app-20200218180401-0003/executors | jq 'reduce .[] as $item (0; . + $item.totalCores)') -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 1; done >> cores.log
+
 ```
 
 
@@ -79,12 +91,9 @@ mkdir spark/data/worker3
 rsync 130.238.29.54:~/*.log spark/data/worker3
 mkdir spark/data/worker4
 rsync 130.238.28.59:~/*.log spark/data/worker4
-# worker 5 doesn't have public IP
 mkdir spark/data/worker5
-rsync -e "ssh -p 10000" ubuntu@localhost:~/*.log spark/data/worker5
-
-
-
+# worker 5 doesn't have public IP
+rsync ben-spark-worker-2-4:~/*.log spark/data/worker5
 
 # Copy 1 file
 rm src/* ; cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/011001-1-001001001.tif src/
@@ -94,7 +103,7 @@ rm src/* ; cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/* 
 
 
 # Copy all files with a small pause (this helps spark to create smaller batches - so it can scale in a timely fashion
-rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
+cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
 
 # copy 20 images
 cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | head -n 20 | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
@@ -102,3 +111,10 @@ cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; find ./Nuclear\ image
 
 # run manually one image
 cellprofiler -p /mnt/images/Salman_Cell_profiler_data/Salman_CellProfiler_cell_counter_no_specified_folders.cpproj -o ~ --file-list filelist
+
+
+---
+Runs:
+2019-11-20 -- trial run?
+2019-11-21 -- run for CCGrid submission.
+2020-02-18 -- upped concurrent jobs setting from 3 to 40.
