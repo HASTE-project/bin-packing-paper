@@ -5,7 +5,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 import scala.sys.process._
-
+import org.apache.spark.streaming.dstream.{DStream, FileInputDStream2}
 
 object CellProfilerStreaming {
 
@@ -44,8 +44,9 @@ object CellProfilerStreaming {
     val output_cp = commandline.!!
 
     // The output is in CSV files, do a listing to confirm success.
-    val output_ls = s"ls -l $cpOutputTempDir".!!
-    return output_ls
+//    val output_ls = s"ls -l $cpOutputTempDir".!!
+//    return output_ls
+    return commandline
   }
 
   private def runFileStreamingApp = {
@@ -102,21 +103,26 @@ object CellProfilerStreaming {
 
     val ssc = new StreamingContext(sparkSession.sparkContext, Seconds(BATCH_INTERVAL))
 
-    val dstream = SparkUtil.namedTextFileStream(ssc, PATH)
+//    val dstream = SparkUtil.namedTextFileStream(ssc, PATH)
+//
+//    val filenamesAndContentsDStream = dstream.transform(rdd => SparkUtil.transformByFile(rdd, SparkUtil.byFileTransformer))
+//
+//    // (Runs at the driver)
+//
+//    // Discard the file contents, leaving just the filenames:
 
-    val filenamesAndContentsDStream = dstream.transform(rdd => SparkUtil.transformByFile(rdd, SparkUtil.byFileTransformer))
+    val filenamesDStream = new FileInputDStream2(ssc, PATH)
+
+    filenamesDStream.print(6)
+
+    val filenamesDStream2 = filenamesDStream.map(_.substring("file:".length))
+    filenamesDStream2.foreachRDD(rdd => logger.warn("new files: " + rdd.count()))
+    filenamesDStream2.print(5)
 
     // (Runs at the driver)
-    filenamesAndContentsDStream.foreachRDD(rdd => logger.warn("new files: " + rdd.count()))
+    filenamesDStream2.foreachRDD(rdd => logger.warn(s"number partitions: ${rdd.getNumPartitions} number files: ${rdd.count}"))
 
-    // Discard the file contents, leaving just the filenames:
-    val filenamesDStream = filenamesAndContentsDStream.map(_._1.substring("file:".length))
-    filenamesDStream.print(5)
-
-    // (Runs at the driver)
-    filenamesDStream.foreachRDD(rdd => logger.warn(s"number partitions: ${rdd.getNumPartitions} number files: ${rdd.count}"))
-
-    val cellprofilerOutputDStream = filenamesDStream.map(runcp)
+    val cellprofilerOutputDStream = filenamesDStream2.map(runcp)
 
     // Force execution, (but don't collect)
     cellprofilerOutputDStream.count().print()

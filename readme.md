@@ -22,11 +22,13 @@ salmantoor/cellprofiler:3.1.9
 
 # Spark
 
+SNIC 2019/10-33 (UPPMAX)
+
 Worker:
 130.238.28.97
 
 Streaming Source: 
-130.238.29.13
+130.238.28.96
 
 Can't use Python API.
 https://spark.apache.org/docs/latest/api/python/pyspark.streaming.html

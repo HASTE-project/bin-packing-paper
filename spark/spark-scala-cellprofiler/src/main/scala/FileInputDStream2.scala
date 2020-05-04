@@ -72,13 +72,13 @@ import org.apache.spark.util.{SerializableConfiguration, Utils}
   *    processing semantics are undefined.
   */
 //private[streaming]
-class FileInputDStream2[K, V, F <: NewInputFormat[K, V]](
+class FileInputDStream2[LongWritable, BytesWritable, WholeBinaryFormat](
                                                          _ssc: StreamingContext,
                                                          directory: String,
                                                          filter: Path => Boolean = FileInputDStream.defaultFilter,
                                                          newFilesOnly: Boolean = true,
                                                          conf: Option[Configuration] = None)
-                                                       (implicit km: ClassTag[K], vm: ClassTag[V], fm: ClassTag[F])
+                                                       //(implicit km: ClassTag[K], vm: ClassTag[V], fm: ClassTag[F])
   extends InputDStream[String](_ssc) {
 
   private val serializableConfOpt = conf.map(new SerializableConfiguration(_))

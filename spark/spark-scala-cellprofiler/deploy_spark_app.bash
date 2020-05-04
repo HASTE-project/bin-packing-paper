@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 
+
 cd $(dirname $0)
 
 # Build the .jar
 #cd spark-scala-cellprofiler
-sbt packageBin
+#rm target/scala-2.11/spark-scala-cellprofiler_2.11-0.1.jar
+
+#set -e
+sbt -v compile package
 
 cd $(dirname $0)
 
