@@ -26,24 +26,47 @@ start_ts = cores_data_np[0, 0]
 plt.rc('figure', figsize=(10, 5))
 plt.title('CPU usage on Spark cluster')
 
+# plt.subplots_adjust(left=0.1)
+
 
 # Creates two subplots and unpacks the output array immediately
-f, axeses = plt.subplots(5, 1, sharey=True, sharex=True)
+fig, axeses = plt.subplots(5, 1, sharey=True, sharex=True)
 
 for worker_id, axes in enumerate(axeses):
 
+
     cpu_data_np = np.array(cpu_data[worker_id])
 
+    axes.plot(cores_data_np[:, 0] - start_ts, cores_data_np[:, 1 + worker_id] / 8, label='measured CPU', linestyle="-", lw=0.5, color="black", alpha=0.5)
+    # Spark Executor Cores (5x SSC.XLARGE)
+    axes.plot(cpu_data_np[:, 0] - start_ts, cpu_data_np[:, 1], label='allocated CPU', linestyle="--", lw=0.5, color="black", alpha=0.9)
 
-    axes.plot(cores_data_np[:, 0] - start_ts, cores_data_np[:, 1 + worker_id] / 8, label='CPU usage', linestyle="-", lw=0.5, color="black", alpha=0.5)
-    axes.plot(cpu_data_np[:, 0] - start_ts, cpu_data_np[:, 1], label='Spark Executor Cores (5x SSC.XLARGE)', linestyle="--", lw=0.5, color="black", alpha=0.9)
+    plt.xlabel('Time (secs)')
+    plt.yticks(np.arange(0, 1.01, step=0.25), np.arange(0, 101, step=25))
 
-    # axes.legend()
-    plt.xlabel('Timestamp (secs)')
-    plt.ylabel('Cores')
+    # axes.set_yticks([0, 0.5, 1])
+    # axes.set_ylabel('Cores')
+    axes.set_ylabel(f'Worker {worker_id  +1 }')
 
     if TRIM:
         plt.xlim((start_timestamp, end_timestamp))
+
+    if worker_id == 0:
+        axes.legend(loc=1)
+
+
+font = {'size': 16}
+
+left, width = .04, .5
+bottom, height = .25, .5
+right = left + width
+top = bottom + height
+
+fig.text(left, 0.5*(bottom+top), 'CPU on workers (%)',
+        horizontalalignment='left',
+        verticalalignment='center',
+        rotation='vertical',
+        fontdict=font)
 
 plt.savefig(f'spark_{RUN}_combined.png', dpi=600)
 
