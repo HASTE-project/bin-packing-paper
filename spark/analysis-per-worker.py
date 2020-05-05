@@ -6,9 +6,10 @@ import numpy as np
 # end_timestamp = 1200
 from spark.lib import get_cores_new, get_cpu
 
-RUN = '2020-02-20'
-start_timestamp = 100
-end_timestamp = 1000
+# RUN = '2020-02-20'
+RUN = '2020-04-05'
+start_timestamp = 1
+end_timestamp = 800
 TRIM = True
 
 WORKER_DIR_NAMES = [f'worker{i}' for i in range(1, 6)]

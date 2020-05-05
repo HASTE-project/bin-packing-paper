@@ -41,12 +41,10 @@ object CellProfilerStreaming {
     logger.warn(commandline)
 
     // The .!! runs an external process and gets all the string outout.
+    // It will throw on non-zero exit code.
     val output_cp = commandline.!!
 
-    // The output is in CSV files, do a listing to confirm success.
-//    val output_ls = s"ls -l $cpOutputTempDir".!!
-//    return output_ls
-    return commandline
+    return s"cellprofiler completed: ${System.currentTimeMillis / 1000}"
   }
 
   private def runFileStreamingApp = {
@@ -55,22 +53,17 @@ object CellProfilerStreaming {
       .master(SPARK_MASTER_URL)
       .appName("CellProfiler")
 
-
-
       // Implemented with: https://issues.apache.org/jira/browse/SPARK-12133
       // See: https://medium.com/@pmatpadi/spark-streaming-dynamic-scaling-and-backpressure-in-action-6ebdbc782a69
       // These don't seem to be documented officially? (yet?)
       //      .config("spark.streaming.dynamicAllocation.enabled", true)
       //      .config("spark.streaming.dynamicAllocation.scalingInterval", 10)
       //      .config("spark.streaming.dynamicAllocation.minExecutors", 1)
-
-
       // Scaling up is driven by ratio of batch interval to processing time.
       // But, it doesn't apply until an entire batch is copied. So, we want a pause between copying the files.
       // And we also use a short batch interval (of 1 second). this way, we complete the first batch within a few seconds, so
       // we can begin the scaling.
-
-      // .. this doesn't really work -- because the jobs are processed sequentially, so we can never use all of the cores properly.
+      // .. this didn't really work -- because the jobs are processed sequentially, so we can never use all of the cores properly.
       // since we must have a small number of files in the batch interval in order for timely scale up,
       // but enough files in the batch interval to use all the cores when it has scaled up.
 
@@ -78,8 +71,7 @@ object CellProfilerStreaming {
       .config("spark.shuffle.service.enabled", true)
       .config("spark.dynamicAllocation.enabled", true)
       .config("spark.dynamicAllocation.executorIdleTimeout", 20)
-
-    // TODO: spark.dynamicAllocation.cachedExecutorIdleTimeout ?? this causing executors to stay alive?
+      // TODO: spark.dynamicAllocation.cachedExecutorIdleTimeout ?? this causing executors to stay alive?
 
       // By default, jobs are run sequentially across the cluster.
       // Because processing each image takes ~10 seconds on a single core,
@@ -102,19 +94,11 @@ object CellProfilerStreaming {
     logger.warn("can you see me?")
 
     val ssc = new StreamingContext(sparkSession.sparkContext, Seconds(BATCH_INTERVAL))
-
-//    val dstream = SparkUtil.namedTextFileStream(ssc, PATH)
-//
-//    val filenamesAndContentsDStream = dstream.transform(rdd => SparkUtil.transformByFile(rdd, SparkUtil.byFileTransformer))
-//
-//    // (Runs at the driver)
-//
-//    // Discard the file contents, leaving just the filenames:
-
     val filenamesDStream = new FileInputDStream2(ssc, PATH)
 
     filenamesDStream.print(6)
 
+    // The filenames are uris: file:///foo/bar/wibble  -- make them into plain file paths.
     val filenamesDStream2 = filenamesDStream.map(_.substring("file:".length))
     filenamesDStream2.foreachRDD(rdd => logger.warn("new files: " + rdd.count()))
     filenamesDStream2.print(5)

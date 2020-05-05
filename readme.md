@@ -43,6 +43,12 @@ sudo ntpdate -v 0.se.pool.ntp.org
 
 # To run the benchamarking:
 
+0. fix hostname on driver (master):
+
+sudo hostname 192.168.1.15
+
+(for reverse dns 'connect back')
+
 0. Start Spark, as appropriate, on the different machines:
 
 ./spark-2.4.4-bin-hadoop2.7/sbin/start-master.sh
@@ -55,8 +61,7 @@ Check in Web GUI that cluster and all workers are up.
 
 0. Clear source directory. 
 
-O
-cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; mkdir src 
+cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; mkdir src
  
 0. Begin profiling:
 
@@ -69,7 +74,7 @@ rm cpu.log ; while : ; do  echo "$(top -b -n2 -d 0.1 |grep "Cpu(s)"|tail -n 1) -
 
 # Poll the total number of cores (just do this on the master)
 # Need to first get AppID from web interface
-rm cores.log ; while : ; do  echo "$(curl -s http://localhost:4040/api/v1/applications/app-20200218180401-0003/executors | jq 'reduce .[] as $item (0; . + $item.totalCores)') -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 1; done >> cores.log
+###rm cores.log ; while : ; do  echo "$(curl -s http://localhost:4040/api/v1/applications/app-20200218180401-0003/executors | jq 'reduce .[] as $item (0; . + $item.totalCores)') -  $(($(date +%s%N)/1000000))mS since epoch"; sleep 1; done >> cores.log
 # OBSELETE... do it like this to get per-core count:
 
 
@@ -87,6 +92,7 @@ See:
 On the source machine:
 
 
+
 # Copy 1 file
 rm src/* ; cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/011001-1-001001001.tif src/
 
@@ -95,7 +101,7 @@ rm src/* ; cd /mnt/images/Salman_Cell_profiler_data/Data ; cp Nuclear\ images/* 
 
 
 # Copy all files with a small pause (this helps spark to create smaller batches - so it can scale in a timely fashion
-cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
+echo $(($(date +%s%N)/1000000))mS since epoch; cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"; echo $(($(date +%s%N)/1000000))mS since epoch
 
 # copy 20 images
 cd /mnt/images/Salman_Cell_profiler_data/Data ; rm src/* ; find ./Nuclear\ images -name "*.tif" -type f | head -n 20 | xargs -I file sh -c "(cp \"file\" ./src; sleep 0.1)"
@@ -115,7 +121,7 @@ rsync -z 130.238.28.106:~/*.log spark/data/worker1
 mkdir spark/data/worker2
 rsync -z 130.238.28.86:~/*.log spark/data/worker2
 mkdir spark/data/worker3
-rsync -z 130.238.29.54:~/*.log spark/data/worker3
+rsync -z ben-spark-worker-1:~/*.log spark/data/worker3
 mkdir spark/data/worker4
 rsync -z 130.238.28.59:~/*.log spark/data/worker4
 mkdir spark/data/worker5
@@ -131,6 +137,7 @@ rsync -z ben-spark-worker-2-4:~/*.log spark/data/worker5
 2020-02-18 -- upped concurrent jobs setting from 3 to 40.
 2020-02-20 -- recording per-node executor count also. 
 
+2020-04-05 -- performance fix: only filenames in RDD. Copy started 1588707496409mS. Copy ended 1588707586693mS. Last processing apx. 1588708133 Secs
 
 
 # MISC NOTES

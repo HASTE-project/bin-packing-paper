@@ -276,7 +276,17 @@ class FileInputDStream2[LongWritable, BytesWritable, WholeBinaryFormat](
 
   /** Generate one RDD from an array of files */
   private def filesToRDD(files: Seq[String]): RDD[String] = {
-    _ssc.sparkContext.makeRDD(files)
+    // We don't want empty partitions, as this seems to prevent scaledown
+    val fileLength = files.length
+    if (fileLength == 0) {
+      // Return an empty RDD -- without any partitions.
+      _ssc.sparkContext.emptyRDD[String]
+    } else {
+      // At least 1 file per partition.
+      _ssc.sparkContext.makeRDD(files, if (fileLength > 40) 40 else fileLength)
+    }
+
+
 //    val fileRDDs = files.map { file =>
 //      val rdd = serializableConfOpt.map(_.value) match {
 //        case Some(config) => context.sparkContext.newAPIHadoopFile(
