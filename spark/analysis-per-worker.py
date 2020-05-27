@@ -38,9 +38,9 @@ for worker_id, axes in enumerate(axeses):
 
     cpu_data_np = np.array(cpu_data[worker_id])
 
-    axes.plot(cores_data_np[:, 0] - start_ts, cores_data_np[:, 1 + worker_id] / 8, label='measured CPU', linestyle="-", lw=0.5, color="black", alpha=0.5)
+    axes.plot(cores_data_np[:, 0] - start_ts, cores_data_np[:, 1 + worker_id] / 8, label='allocated CPU', linestyle="-", lw=0.5, color="black", alpha=0.5)
     # Spark Executor Cores (5x SSC.XLARGE)
-    axes.plot(cpu_data_np[:, 0] - start_ts, cpu_data_np[:, 1], label='allocated CPU', linestyle="--", lw=0.5, color="black", alpha=0.9)
+    axes.plot(cpu_data_np[:, 0] - start_ts, cpu_data_np[:, 1], label='measured CPU', linestyle="--", lw=0.5, color="black", alpha=0.9)
 
     plt.xlabel('Time (secs)')
     plt.yticks(np.arange(0, 1.01, step=0.25), np.arange(0, 101, step=25))
